@@ -27,15 +27,11 @@ proc EVP_mdc2*(): EVP_MD      {.cdecl, importc.}
 proc EVP_ripemd160*(): EVP_MD {.cdecl, importc.}
 proc EVP_whirlpool*(): EVP_MD {.cdecl, importc.}
 
-proc HMAC*(evp_md: EVP_MD; key: pointer; key_len: cint; d: cstring;
-           n: csize; md: cstring; md_len: ptr cuint): cstring {.cdecl, importc.}
-
-proc PEM_read_bio_PrivateKey*(bp: BIO, x: ptr EVP_PKEY,
-            cb: pointer, u: pointer): EVP_PKEY {.cdecl, importc.}
+proc HMAC*(evp_md: EVP_MD; key: pointer; key_len: cint; d: cstring; n: csize; md: cstring; md_len: ptr cuint): cstring {.cdecl, importc.}
+proc PEM_read_bio_PrivateKey*(bp: BIO, x: ptr EVP_PKEY, cb: pointer, u: pointer): EVP_PKEY {.cdecl, importc.}
 proc EVP_PKEY_free*(p: EVP_PKEY)  {.cdecl, importc.}
 
-
-when defined(macosx):
+when defined(macosx) or defined(windows):
   proc EVP_MD_CTX_create*(): EVP_MD_CTX {.cdecl, importc.}
   proc EVP_MD_CTX_destroy*(ctx: EVP_MD_CTX) {.cdecl, importc.}
 else:
@@ -51,8 +47,10 @@ proc EVP_DigestSignFinal*(ctx: EVP_MD_CTX, data: pointer, len: ptr csize): cint 
 proc EVP_PKEY_CTX_new*(pkey: EVP_PKEY, e: ENGINE): EVP_PKEY_CTX {.cdecl, importc.}
 proc EVP_PKEY_sign_init*(c: EVP_PKEY_CTX): cint {.cdecl, importc.}
 
-when not declared(BIO_new_mem_buf):
+when not declared(BIO_new_mem_buf) or defined(windows):
   proc BIO_new_mem_buf*(data: pointer, len: cint): BIO{.cdecl, importc.}
+  # proc BIO_set_close*(data: pointer, flag: clong): cint{.cdecl, importc.}
+  # const BIO_NOCLOSE = 0
 
 proc signPem*(data, key: string, alg: EVP_MD, typ: cint): seq[uint8] =
   var bufkey: BIO
@@ -60,7 +58,14 @@ proc signPem*(data, key: string, alg: EVP_MD, typ: cint): seq[uint8] =
   var mdctx: EVP_MD_CTX
 
   defer:
-    if not bufkey.isNil: discard BIO_free(bufkey)
+    if defined(windows):
+      #TODO: for some reason this segfaults on windows, so we are going to leak memory instead.
+      # if not bufkey.isNil:
+      #   discard BIO_set_close(bufkey, BIO_NOCLOSE)
+      #   discard BIO_free(bufkey)
+      discard
+    else:
+      if not bufkey.isNil: discard BIO_free(bufkey)
     if not pkey.isNil: EVP_PKEY_free(pkey)
     if not mdctx.isNil: EVP_MD_CTX_destroy(mdctx)
 
