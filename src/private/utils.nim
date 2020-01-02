@@ -19,7 +19,7 @@ proc checkKeysExists*(node: JsonNode, keys: varargs[string]) =
 
 
 proc encodeUrlSafe*(s: string): string =
-  result = base64.encode(s, newLine="")
+  result = base64.encode(s)
   while result.endsWith("="):
     result = result.substr(0, result.high-1)
   result = result.replace('+', '-').replace('/', '_')
