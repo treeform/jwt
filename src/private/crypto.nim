@@ -52,7 +52,7 @@ when not declared(BIO_new_mem_buf) or defined(windows):
   # proc BIO_set_close*(data: pointer, flag: clong): cint{.cdecl, importc.}
   # const BIO_NOCLOSE = 0
 
-proc signPem*(data, key: string, alg: EVP_MD, typ: cint): seq[uint8] =
+proc signPem*(data, key: string, alg: EVP_MD, typ: cint): string =
   var bufkey: BIO
   var pkey: EVP_PKEY
   var mdctx: EVP_MD_CTX
@@ -98,7 +98,7 @@ proc signPem*(data, key: string, alg: EVP_MD, typ: cint): seq[uint8] =
     raise newException(Exception, "Invalid value")
 
   # Allocate memory for signature based on returned size
-  result = newSeq[uint8](slen)
+  result = newString(slen)
 
   # Get the signature
   if EVP_DigestSignFinal(mdctx, addr result[0], addr slen) != 1:

@@ -159,8 +159,7 @@ suite "Token tests":
     var token: string
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMiIsIm5hbWUiOiJTdXBlciBjb29sIiwiYWRtaW4iOmZhbHNlLCJtc2ciOiJPTUcgaXQgd29ya3MhIn0.IJwn4dWp-dQWwWmAn5WDgbOdXb6-ddoLsrYizBsR7cRHd4T-_Tyt8qfJQsB3ZfKGLqG159c_cphseA_hGJyc8w"
     token.verifyEx("?", @["HS512"])
-    
- 
+     
   test "check RS256":
     var token: string
     token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.POstGetfAytaZS82wHcjoTyoqhMyxXiWdR7Nn7A29DNSl0EiXLdwJ6xC6AfgZWF1bOsS_TuYI3OG85AmiExREkrS6tDfTQ2B3WXlrr-wp5AokiRbz3_oB4OxG-W9KcEEbDRcZc0nH3L7LzYptiy1PtAylQGxHTWZXtGz4ht0bAecBgmpdgXMguEIcoqPJ1n3pIWk_dUZegpqx0Lka21H6XxUTxiy8OcaarA8zdnPUnV6AmNP3ecFawIFYdvJB_cm-GvpCSbr8G8y_Mllj8f4x9nBH8pQux89_6gUY618iYv7tuPWBFfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA"
