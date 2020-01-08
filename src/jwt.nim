@@ -1,4 +1,4 @@
-import json, strutils, base64, times, private/crypto
+import json, strutils, base64, times, jwt/crypto
 
 proc encodeBase64url(s: string): string =
   result = base64.encode(s)
