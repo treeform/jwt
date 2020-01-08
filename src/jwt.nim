@@ -9,23 +9,6 @@ proc encodeBase64url(s: string): string =
 type
   InvalidToken* = object of Exception
 
-template HS(shaXXX: untyped, token, secret: string): string =
-  var
-    signature = newString(64)
-    signatureLen: cuint
-  discard crypto.HMAC(
-    shaXXX, 
-    unsafeAddr secret[0], 8, 
-    token.cstring, token.len.cint, 
-    unsafeAddr signature[0], addr signatureLen
-  )
-  signature.setLen(signatureLen)
-  signature
-
-template RS(shaXXX: untyped, token, secret: string): string =
-  let signature = signPEM(token, secret, shaXXX, crypto.EVP_PKEY_RSA)
-  signature
-
 proc sign(alg, headerB64, claimB64, secret: string): string =
   var token = ""
   token.add headerB64
@@ -34,12 +17,12 @@ proc sign(alg, headerB64, claimB64, secret: string): string =
   if alg != "none":
     var signature = 
       case alg:       
-        of "HS256": HS(crypto.EVP_sha256(), token, secret)
-        of "HS384": HS(crypto.EVP_sha384(), token, secret)
-        of "HS512": HS(crypto.EVP_sha512(), token, secret)
-        of "RS256": RS(crypto.EVP_sha256(), token, secret)    
-        of "RS384": RS(crypto.EVP_sha384(), token, secret)   
-        of "RS512": RS(crypto.EVP_sha512(), token, secret)
+        of "HS256": signHMAC(token, secret, EVP_sha256())
+        of "HS384": signHMAC(token, secret, EVP_sha384())
+        of "HS512": signHMAC(token, secret, EVP_sha512())
+        of "RS256": signPEM(token, secret, EVP_sha256())    
+        of "RS384": signPEM(token, secret, EVP_sha384())   
+        of "RS512": signPEM(token, secret, EVP_sha512())
         else:
           raise newException(ValueError, "Algorithm " & alg & " not supported.")
     token.add "."
