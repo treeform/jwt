@@ -80,13 +80,13 @@ var token = jwt.sign(
     "typ": "JWT"
   },
   claim = %*{
-    "iss": conn.email,
+    "iss": email,
     "scope": scope,
     "aud": "https://www.googleapis.com/oauth2/v4/token",
     "exp": int(epochTime() + 60 * 60),
     "iat": int(epochTime()) 
   },
-  secret = conn.privateKey
+  secret = privateKey
 )
 
 let postdata = "grant_type=" & encodeUrl("urn:ietf:params:oauth:grant-type:jwt-bearer") & "&assertion=" & token
