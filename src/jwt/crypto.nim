@@ -1,55 +1,56 @@
 import openssl
 
-type
-  EVP_MD = SslPtr
-  EVP_MD_CTX = SslPtr
-  EVP_PKEY_CTX = SslPtr
-  ENGINE = SslPtr
+when not defined(EVP_MD) and not defined(EVP_MD_CTX) and not defined(EVP_PKEY_CTX) and not defined(ENGINE):
+  type
+    EVP_MD = SslPtr
+    EVP_MD_CTX = SslPtr
+    EVP_PKEY_CTX = SslPtr
+    ENGINE = SslPtr
 
-# sha types
-proc EVP_sha256*(): EVP_MD {.cdecl, importc.}
-proc EVP_sha384*(): EVP_MD {.cdecl, importc.}
-proc EVP_sha512*(): EVP_MD {.cdecl, importc.}
+  # sha types
+  proc EVP_sha256*(): EVP_MD {.cdecl, importc.}
+  proc EVP_sha384*(): EVP_MD {.cdecl, importc.}
+  proc EVP_sha512*(): EVP_MD {.cdecl, importc.}
 
-# hmac functions
-proc HMAC(evp_md: EVP_MD; key: pointer; key_len: cint; d: cstring; n: csize_t; md: cstring; md_len: ptr cuint): cstring {.cdecl, importc.}
+  # hmac functions
+  proc HMAC(evp_md: EVP_MD; key: pointer; key_len: cint; d: cstring; n: csize_t; md: cstring; md_len: ptr cuint): cstring {.cdecl, importc.}
 
-# RSA key functions
-proc PEM_read_bio_PrivateKey(bp: BIO, x: ptr EVP_PKEY, cb: pointer, u: pointer): EVP_PKEY {.cdecl, importc.}
-proc EVP_PKEY_free(p: EVP_PKEY)  {.cdecl, importc.}
-proc EVP_DigestSignInit(ctx: EVP_MD_CTX, pctx: ptr EVP_PKEY_CTX, typ: EVP_MD, e: ENGINE, pkey: EVP_PKEY): cint {.cdecl, importc.}
-proc EVP_DigestUpdate(ctx: EVP_MD_CTX, data: pointer, len: cuint): cint {.cdecl, importc.}
-proc EVP_DigestSignFinal(ctx: EVP_MD_CTX, data: pointer, len: ptr csize_t): cint {.cdecl, importc.}
-proc EVP_PKEY_CTX_new(pkey: EVP_PKEY, e: ENGINE): EVP_PKEY_CTX {.cdecl, importc.}
-proc EVP_PKEY_CTX_free(pkeyCtx: EVP_PKEY_CTX) {.cdecl, importc.}
-proc EVP_PKEY_sign_init(c: EVP_PKEY_CTX): cint {.cdecl, importc.} 
+  # RSA key functions
+  proc PEM_read_bio_PrivateKey(bp: BIO, x: ptr EVP_PKEY, cb: pointer, u: pointer): EVP_PKEY {.cdecl, importc.}
+  proc EVP_PKEY_free(p: EVP_PKEY)  {.cdecl, importc.}
+  proc EVP_DigestSignInit(ctx: EVP_MD_CTX, pctx: ptr EVP_PKEY_CTX, typ: EVP_MD, e: ENGINE, pkey: EVP_PKEY): cint {.cdecl, importc.}
+  proc EVP_DigestUpdate(ctx: EVP_MD_CTX, data: pointer, len: cuint): cint {.cdecl, importc.}
+  proc EVP_DigestSignFinal(ctx: EVP_MD_CTX, data: pointer, len: ptr csize_t): cint {.cdecl, importc.}
+  proc EVP_PKEY_CTX_new(pkey: EVP_PKEY, e: ENGINE): EVP_PKEY_CTX {.cdecl, importc.}
+  proc EVP_PKEY_CTX_free(pkeyCtx: EVP_PKEY_CTX) {.cdecl, importc.}
+  proc EVP_PKEY_sign_init(c: EVP_PKEY_CTX): cint {.cdecl, importc.}
 
-when defined(macosx) or defined(windows):
-  proc EVP_MD_CTX_create(): EVP_MD_CTX {.cdecl, importc.}
-  proc EVP_MD_CTX_destroy(ctx: EVP_MD_CTX) {.cdecl, importc.}
-else:
-  # some times you will need this instead:
-  proc EVP_MD_CTX_create(): EVP_MD_CTX {.cdecl, importc: "EVP_MD_CTX_new".}
-  proc EVP_MD_CTX_destroy(ctx: EVP_MD_CTX) {.cdecl, importc: "EVP_MD_CTX_free".}
+  when defined(macosx) or defined(windows):
+    proc EVP_MD_CTX_create(): EVP_MD_CTX {.cdecl, importc.}
+    proc EVP_MD_CTX_destroy(ctx: EVP_MD_CTX) {.cdecl, importc.}
+  else:
+    # some times you will need this instead:
+    proc EVP_MD_CTX_create(): EVP_MD_CTX {.cdecl, importc: "EVP_MD_CTX_new".}
+    proc EVP_MD_CTX_destroy(ctx: EVP_MD_CTX) {.cdecl, importc: "EVP_MD_CTX_free".}
 
-when not declared(BIO_new_mem_buf) or defined(windows):
-  proc BIO_new_mem_buf(data: pointer, len: cint): BIO {.cdecl, importc.}
+  when not declared(BIO_new_mem_buf) or defined(windows):
+    proc BIO_new_mem_buf(data: pointer, len: cint): BIO {.cdecl, importc.}
 
 proc signHMAC*(token, secret: string, alg: EVP_MD): string =
   var
     signature = newString(64)
     signatureLen: cuint
   discard HMAC(
-    alg, 
-    unsafeAddr secret[0], 8, 
-    token.cstring, token.len.csize_t, 
+    alg,
+    unsafeAddr secret[0], 8,
+    token.cstring, token.len.csize_t,
     unsafeAddr signature[0], addr signatureLen
   )
   signature.setLen(signatureLen)
   signature
 
 proc signPem*(data, key: string, alg: EVP_MD): string =
-  var 
+  var
     bufkey: BIO
     pkey: EVP_PKEY
     mdctx: EVP_MD_CTX
@@ -66,8 +67,8 @@ proc signPem*(data, key: string, alg: EVP_MD): string =
       #   discard BIO_free(bufkey)
       discard
     else:
-      if not bufkey.isNil: discard BIO_free(bufkey)   
-    
+      if not bufkey.isNil: discard BIO_free(bufkey)
+
   # Create a buffer for our work
   bufkey = BIO_new_mem_buf(unsafeAddr key[0], cint(key.len))
   if bufkey.isNil:
