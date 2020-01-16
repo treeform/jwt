@@ -64,7 +64,7 @@ Claims:
 
 
 ```nim
-import jwt, json, times, httpclient, cgi
+import quickjwt, json, times, httpclient, cgi
 
 const email = "username@api-12345-12345.iam.gserviceaccount.com" # Acquired from google api console
 const scope = "https://www.googleapis.com/auth/androidpublisher" # Define needed scope
@@ -74,7 +74,7 @@ The key should be Acquired from google api console
 -----END PRIVATE KEY-----
 """
 
-var token = jwt.sign(
+var token = quickjwt.sign(
   header = %*{
     "alg": "RS256", 
     "typ": "JWT"
