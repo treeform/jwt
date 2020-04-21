@@ -1,7 +1,7 @@
 import json, times, unittest
 from times import nil
 
-import jwt
+import quickjwt
 
 let pubTestKey = """
 -----BEGIN PUBLIC KEY-----
@@ -47,7 +47,7 @@ jg/3747WSsf/zBTcHihTRBdAv6OmdhV4/dD5YBfLAkLrd+mX7iE=
 
 suite "Token tests":
   test "test none sucess":
-    let 
+    let
       secret = "secret"
       token = sign(
         header = %*{
@@ -60,7 +60,7 @@ suite "Token tests":
     assert token.verify(secret) == true
 
   test "test none fail":
-    let 
+    let
       secret = "secret"
       token = sign(
         header = %*{
@@ -69,12 +69,12 @@ suite "Token tests":
         },
         claim = %*{},
         secret = secret
-      )      
+      )
     var tokenBad = token & "j"
     assert tokenBad.verify(secret) == false
 
   test "test HS256 sucess":
-    let 
+    let
       secret = "secret"
       token = sign(
         header = %*{
@@ -87,7 +87,7 @@ suite "Token tests":
     assert token.verify(secret) == true
 
   test "test HS256 fail":
-    let 
+    let
       secret = "secret"
       token = sign(
         header = %*{
@@ -113,7 +113,7 @@ suite "Token tests":
           "nbf": now
         },
         secret = secret
-      )    
+      )
     assert token.verify(secret) == false
 
   test "EXP Check":
@@ -129,7 +129,7 @@ suite "Token tests":
           "exp": now
         },
         secret = secret
-      )  
+      )
     assert token.verify(secret) == false
 
   test "claim":
@@ -159,7 +159,7 @@ suite "Token tests":
     var token: string
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMiIsIm5hbWUiOiJTdXBlciBjb29sIiwiYWRtaW4iOmZhbHNlLCJtc2ciOiJPTUcgaXQgd29ya3MhIn0.IJwn4dWp-dQWwWmAn5WDgbOdXb6-ddoLsrYizBsR7cRHd4T-_Tyt8qfJQsB3ZfKGLqG159c_cphseA_hGJyc8w"
     token.verifyEx("?", @["HS512"])
-     
+
   test "check RS256":
     var token: string
     token = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.POstGetfAytaZS82wHcjoTyoqhMyxXiWdR7Nn7A29DNSl0EiXLdwJ6xC6AfgZWF1bOsS_TuYI3OG85AmiExREkrS6tDfTQ2B3WXlrr-wp5AokiRbz3_oB4OxG-W9KcEEbDRcZc0nH3L7LzYptiy1PtAylQGxHTWZXtGz4ht0bAecBgmpdgXMguEIcoqPJ1n3pIWk_dUZegpqx0Lka21H6XxUTxiy8OcaarA8zdnPUnV6AmNP3ecFawIFYdvJB_cm-GvpCSbr8G8y_Mllj8f4x9nBH8pQux89_6gUY618iYv7tuPWBFfEbLxtF2pZS6YC1aSfLQxeNe8djT9YjpvRZA"
@@ -173,9 +173,8 @@ suite "Token tests":
     var token: string
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzM4NCJ9.eyJzdWIiOiIxMiIsIm5hbWUiOiJTdXBlciBjb29sIiwiYWRtaW4iOmZhbHNlLCJtc2ciOiJPTUcgaXQgd29ya3MhIn0.XNv1SMPVKqH7zi2LBOkBGbSr0HnooigTKU2_UUG1XkwdW9tw0JrhJVUh5LEplHf76fb3NqbIARNV2IiXtXZFh7sWAzg5wE_puQFZG0CRN_KbjhKLAgtJmykXPGIWd0gmhCiFqPg_5YH9NqXdEReUvy3lqJhNWstt8ff-Jm74xrxgM6VScR4m0qDSYOgZFVxkKo-aYbVZoPRhsccC8KYTK3htYJpppv-6XFSf3TB9kWJc4WtoBABP-qdBlL6kzrpYf0d4CY_pFInFPikugec3Yvliind7Fy1Fy-uCiRe7hVGrhrh0UU4TnpY7uvtfZQc_NKdvGyh7oowHAVZYYWv7ow"
     token.verifyEx(pivTestKey, @["RS384"])
-  
+
   test "check RS512":
     var token: string
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJzdWIiOiIxMiIsIm5hbWUiOiJTdXBlciBjb29sIiwiYWRtaW4iOmZhbHNlLCJtc2ciOiJPTUcgaXQgd29ya3MhIn0.R4jyWyrgRoyAaYze7eIx4dosu_4Kvrt2ZY7tLzEaf5lzBTbCpFnjZWDfqgvVn6W0pKxpyP0Is23IzXw3lTMfBUDPbYbFHpaqr1h6yjxXgBYHJBrJ6GVBTNVxhlsZ02rIPXJXz7DqhbOtRL6loa5aZrMNQBZnvQ1VgluVIkpaIB1o7-zV_tdmOK6eibyiFLsf7tcGqhmPNkrV9Cv-gTpFWGCjEU2DmoFC4No9GGWn1srB7ZdWhEuw6tTbK7PYSq0z6K4GaZNXiRbpNj45N0Kw8QVFcUJO457bR9Q0NWtkbnZupVBfjjtBrHNZW47IbkLApLYOibJU8oQAbkESnbVdDQ"
     token.verifyEx(pivTestKey, @["RS512"])
-    

@@ -55,6 +55,8 @@ proc signPem*(data, key: string, alg: EVP_MD): string =
     pkey: EVP_PKEY
     mdctx: EVP_MD_CTX
     pkeyCtx: EVP_PKEY_CTX
+    key = key   # make a copy of key to be extra safe
+    data = data # make a copy of data to be extra safe
 
   defer:
     if not mdctx.isNil: EVP_MD_CTX_destroy(mdctx)
@@ -70,7 +72,7 @@ proc signPem*(data, key: string, alg: EVP_MD): string =
       if not bufkey.isNil: discard BIO_free(bufkey)
 
   # Create a buffer for our work
-  bufkey = BIO_new_mem_buf(unsafeAddr key[0], cint(key.len))
+  bufkey = BIO_new_mem_buf(key[0].addr, key.len.cint)
   if bufkey.isNil:
     raise newException(Exception, "Out of memory")
 
@@ -85,27 +87,25 @@ proc signPem*(data, key: string, alg: EVP_MD): string =
     raise newException(Exception, "Invalid value")
 
   # create MD
-  mdctx = EVP_MD_CTX_create()
+  mdCtx = EVP_MD_CTX_create()
   if mdctx.isNil:
     raise newException(Exception, "Out of memory")
 
   # Initialize the DigestSign operation using alg
-  if EVP_DigestSignInit(mdctx, nil, alg, nil, pkey) != 1:
+  if EVP_DigestSignInit(mdCtx, nil, alg, nil, pkey) != 1:
     raise newException(Exception, "Invalid value")
 
   # Call update with the message
-  if EVP_DigestUpdate(mdctx, unsafeAddr data[0], cuint(data.len)) != 1:
+  if EVP_DigestUpdate(mdCtx, data[0].addr, data.len.cuint) != 1:
     raise newException(Exception, "Invalid value")
 
   # First, call EVP_DigestSignFinal with a NULL sig parameter to get length
   # of sig. Length is returned in slen
-  var slen: csize_t
-  if EVP_DigestSignFinal(mdctx, nil, addr slen) != 1:
+  var sLen: csize_t
+  if EVP_DigestSignFinal(mdCtx, nil, addr sLen) != 1:
     raise newException(Exception, "Invalid value")
   # Allocate memory for signature based on returned size
-  result = newString(slen)
+  result = newString(sLen)
   # Get the signature
-  if EVP_DigestSignFinal(mdctx, addr result[0], addr slen) != 1:
+  if EVP_DigestSignFinal(mdCtx, addr result[0], addr sLen) != 1:
     raise newException(Exception, "Invalid value")
-
-
